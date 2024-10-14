@@ -1,6 +1,7 @@
 package com.example.student_stages.stage;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,6 +39,15 @@ public class StageController {
         Stage stage = new Stage(title, description);
         return stageRepository.save(stage);
     }
+    @PutMapping("/{id}")
+    public ResponseEntity<Stage> updateStage(@PathVariable Long id, @RequestBody Stage updatedStage) {
+        if (!stageRepository.existsById(id)) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        updatedStage.setIdStage(id); // Assure-toi de mettre à jour l'ID pour éviter d'en créer un nouveau
+        return new ResponseEntity<>(stageRepository.save(updatedStage), HttpStatus.OK);
+    }
+
 }
     /*
 
@@ -73,4 +83,5 @@ public class StageController {
             return ResponseEntity.notFound().build();
         }
     } */
+
 

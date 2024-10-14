@@ -32,7 +32,7 @@ public class StudentStagesApplication {
 
             // Save a few students and associate them with stages
             studentRepository.save(new Student("Jack", "Bauer", stage1));
-            studentRepository.save(new Student("Chloe", "O'Brian", stage1));  // Jack and Chloe share the same stage
+            studentRepository.save(new Student("Chloe", "OBrian", stage1));  // Jack and Chloe share the same stage
             studentRepository.save(new Student("Kim", "Bauer", stage2));      // Kim is associated with a different stage
             studentRepository.save(new Student("David", "Palmer", null));     // David has no stage
             studentRepository.save(new Student("Michelle", "Dessler", null)); // Michelle has no stage
