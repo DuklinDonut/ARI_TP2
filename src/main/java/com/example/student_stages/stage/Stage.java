@@ -1,9 +1,10 @@
 package com.example.student_stages.stage;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import com.example.student_stages.student.Student;
+import jakarta.persistence.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 public class Stage {
@@ -31,6 +32,10 @@ public class Stage {
     public Long getId() {
         return idStage;
     }
+
+    // Bidirectional relationship to Student
+    @OneToMany(mappedBy = "stage", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Student> students = new ArrayList<>();
 
     public String getTitle() {
         return title;

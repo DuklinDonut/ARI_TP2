@@ -12,11 +12,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
+@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE})
 @RestController
 @RequestMapping("/students")
-@CrossOrigin("http://localhost:3000/")
+
 public class StudentController {
 
     @Autowired
@@ -86,32 +88,42 @@ public class StudentController {
     }
     //UPDATE : à retravailler
     @PutMapping("/update/{id}")
-    public ResponseEntity<String> updateStudent(@PathVariable Long id, @RequestBody Student updatedStudent) {
-        if (!studentRepository.existsById(id)) {
+    public ResponseEntity<String> updateStudent(@PathVariable Long id, @RequestBody Map<String, Object> payload) {
+        System.out.println("Received update request for student ID: " + id);
+        System.out.println("Incoming payload: " + payload); // Log payload for debugging
+
+        Optional<Student> studentOptional = studentRepository.findById(id);
+        if (!studentOptional.isPresent()) {
+            System.out.println("Student not found with ID: " + id);
             return new ResponseEntity<>("Student not found", HttpStatus.NOT_FOUND);
         }
 
-        // Get the existing student
-        Student existingStudent = studentRepository.findById(id).orElse(null);
+        Student existingStudent = studentOptional.get();
 
-        if (existingStudent != null) {
-            // Update fields
-            existingStudent.setFirstName(updatedStudent.getFirstName());
-            existingStudent.setLastName(updatedStudent.getLastName());
+        // Update basic fields
+        existingStudent.setFirstName((String) payload.get("firstName"));
+        existingStudent.setLastName((String) payload.get("lastName"));
 
-            // Get the stage by ID if provided
-            if (updatedStudent.getStage() != null && updatedStudent.getStage().getId() != null) {
-                Stage stage = stageRepository.findById(updatedStudent.getStage().getId()).orElse(null);
-                if (stage != null) {
-                    existingStudent.setStage(stage); // Update the existing student's stage
-                }
+        // Update the stage if stageId is present
+        if (payload.containsKey("stageId")) {
+            Long stageId = ((Number) payload.get("stageId")).longValue(); // Convert to Long
+            Optional<Stage> stageOptional = stageRepository.findById(stageId);
+            if (stageOptional.isPresent()) {
+                existingStudent.setStage(stageOptional.get());
+            } else {
+                System.out.println("Stage not found with ID: " + stageId);
+                return new ResponseEntity<>("Stage not found", HttpStatus.NOT_FOUND);
             }
-
-            studentRepository.save(existingStudent);
         }
+
+        studentRepository.save(existingStudent);
+        System.out.println("Student after update: " + existingStudent);
 
         return new ResponseEntity<>("Student updated successfully", HttpStatus.OK);
     }
+
+
+
 
 
 

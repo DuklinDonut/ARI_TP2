@@ -1,13 +1,14 @@
 package com.example.student_stages.stage;
 
+import com.example.student_stages.stage.Stage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
+@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE})
 @RestController
 @RequestMapping("/stages")
 public class StageController {
@@ -17,60 +18,40 @@ public class StageController {
 
     // Get all stages
     @GetMapping
-    public List<Stage> getAllStages() {
-        return (List<Stage>) stageRepository.findAll();
+    public ResponseEntity<List<Stage>> getAllStages() {
+        System.out.println("Fetching all stages...");
+        List<Stage> stages = (List<Stage>) stageRepository.findAll();
+        if (stages.isEmpty()) {
+            return ResponseEntity.noContent().build(); // Return 204 if no stages found
+        }
+        return ResponseEntity.ok(stages); // Return the list of stages
     }
 
     // Get a stage by ID
     @GetMapping("/{id}")
     public ResponseEntity<Stage> getStageById(@PathVariable Long id) {
-        Optional<Stage> stage = stageRepository.findById(id);
-        if (stage.isPresent()) {
-            return ResponseEntity.ok(stage.get());
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+        return stageRepository.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
-
-    // Create a new stage (GET or POST) with query params like ?title=Intern&description=Develop
-    @RequestMapping(method = {RequestMethod.GET, RequestMethod.POST})
-    public Stage createStage(@RequestParam String title, @RequestParam String description) {
-        Stage stage = new Stage(title, description);
-        return stageRepository.save(stage);
-    }
-    @PutMapping("/{id}")
-    public ResponseEntity<Stage> updateStage(@PathVariable Long id, @RequestBody Stage updatedStage) {
-        if (!stageRepository.existsById(id)) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-        updatedStage.setIdStage(id); // Assure-toi de mettre à jour l'ID pour éviter d'en créer un nouveau
-        return new ResponseEntity<>(stageRepository.save(updatedStage), HttpStatus.OK);
-    }
-
-}
-    /*
-
-    // Create a new stage
+    // Create a new stage (using POST)
     @PostMapping
-    public Stage createStage(@RequestBody Stage stage) {
-        return stageRepository.save(stage);
+    public ResponseEntity<Stage> createStage(@RequestParam String title, @RequestParam String description) {
+        Stage stage = new Stage(title, description);
+        Stage savedStage = stageRepository.save(stage);
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedStage);
     }
 
     // Update a stage by ID
     @PutMapping("/{id}")
     public ResponseEntity<Stage> updateStage(@PathVariable Long id, @RequestBody Stage updatedStage) {
-        Optional<Stage> stageOptional = stageRepository.findById(id);
-
-        if (stageOptional.isPresent()) {
-            Stage stage = stageOptional.get();
-            stage.setTitle(updatedStage.getTitle());
-            stage.setDescription(updatedStage.getDescription());
-            stageRepository.save(stage);
-            return ResponseEntity.ok(stage);
-        } else {
+        if (!stageRepository.existsById(id)) {
             return ResponseEntity.notFound().build();
         }
+        updatedStage.setIdStage(id); // Ensure the ID is updated to avoid creating a new entry
+        Stage savedStage = stageRepository.save(updatedStage);
+        return ResponseEntity.ok(savedStage);
     }
 
     // Delete a stage by ID
@@ -79,9 +60,7 @@ public class StageController {
         if (stageRepository.existsById(id)) {
             stageRepository.deleteById(id);
             return ResponseEntity.noContent().build();
-        } else {
-            return ResponseEntity.notFound().build();
         }
-    } */
-
-
+        return ResponseEntity.notFound().build();
+    }
+}
